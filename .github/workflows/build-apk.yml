@@ -1,0 +1,72 @@
+name: Build Android APK
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout الكود
+        uses: actions/checkout@v4
+
+      - name: تثبيت Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: تثبيت Java (JDK 21)
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: تثبيت حزم المشروع
+        run: npm install
+
+      - name: تثبيت حزم Capacitor
+        run: npm install @capacitor/cli @capacitor/core @capacitor/android
+
+      - name: بناء نسخة الويب (Vite)
+        run: npx vite build
+
+      - name: إنشاء إعدادات Capacitor تلقائياً
+        run: |
+          if [ ! -f "capacitor.config.json" ] && [ ! -f "capacitor.config.ts" ]; then
+            echo '{"appId": "com.iraqismartinvestor.app", "appName": "Iraqi Smart Investor", "webDir": "dist"}' > capacitor.config.json
+          fi
+
+      - name: إعداد منصة أندرويد عبر Capacitor
+        run: |
+          if [ ! -d "android" ]; then
+            npx cap add android
+          fi
+          npx cap sync android
+
+      - name: حل تعارض مكتبات Kotlin بشكل شامل
+        run: |
+          echo '
+          allprojects {
+              configurations.all {
+                  exclude group: "org.jetbrains.kotlin", module: "kotlin-stdlib-jdk7"
+                  exclude group: "org.jetbrains.kotlin", module: "kotlin-stdlib-jdk8"
+              }
+          }
+          ' >> android/build.gradle
+
+      - name: منح صلاحية التنفيذ لـ gradlew
+        run: chmod +x android/gradlew
+
+      - name: بناء ملف APK
+        run: |
+          cd android
+          ./gradlew assembleDebug
+
+      - name: رفع ملف APK كمخرج (Artifact)
+        uses: actions/upload-artifact@v4
+        with:
+          name: المستثمر-الذكي-العراقي-apk
+          path: android/app/build/outputs/apk/debug/app-debug.apk

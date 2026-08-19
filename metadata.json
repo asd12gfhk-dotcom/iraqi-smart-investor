@@ -1,0 +1,6 @@
+{
+  "name": "منصة المستثمر الذكي العراقي V2",
+  "description": "منصة التحليل الفني الرقمي لسوق العراق للأوراق المالية (ISX) - محرك فني وتقييم حتمي متكامل بدون أخبار مع أدوات المستثمر وحاسبة الأرباح الدقيقة.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
